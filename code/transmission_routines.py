@@ -78,8 +78,9 @@ def clean_and_interp(xvals, yvals, xnew, average=False, check_interp=False):   #
   else:   # remove duplicate values
     sorted_xvals, sorted_yvals = remove_duplicates(xvals_nonan, yvals_nonan)   # remove second instance of duplicate x values and corresponding y values
 
-  tck = interpolate.splrep(sorted_xvals, sorted_yvals, s=0, k=3)
-  yvals_interp = interpolate.BSpline(*tck, extrapolate=False)(xnew)
+  b = interpolate.make_interp_spline(sorted_xvals, sorted_yvals, k=3)   # k=1 is linear, k=3 is cubic spline, k=4 is quartic spline
+  yvals_interp = b(xnew, extrapolate=False)
+
   yvals_interp[yvals_interp>1] = 1   # max transission is 1
 
   if check_interp:   # plot for checking interpolation
@@ -89,10 +90,10 @@ def clean_and_interp(xvals, yvals, xnew, average=False, check_interp=False):   #
     plt.plot(xnew,         yvals_interp, linewidth=2, color='k', label='Interpolated')
     plt.legend(markerscale=2)
 
-    plt.figure()
-    hist, bins, patches = plt.hist(xvals_nonan, bins=50, alpha=0.5)
-    plt.hist(sorted_xvals, bins=bins, alpha=0.5, label='Cleaned Data')
-    plt.title('Removed {} out of {} duplicate x values ({}\\%)'.format(len(xvals_nonan)-len(sorted_xvals), len(xvals_nonan), round((len(xvals_nonan)-len(sorted_xvals))/len(xvals_nonan)*100, 2)))
-    plt.show()
+    # plt.figure()
+    # hist, bins, patches = plt.hist(xvals_nonan, bins=50, alpha=0.5)
+    # plt.hist(sorted_xvals, bins=bins, alpha=0.5, label='Cleaned Data')
+    # plt.title('Removed {} out of {} duplicate x values ({}\\%)'.format(len(xvals_nonan)-len(sorted_xvals), len(xvals_nonan), round((len(xvals_nonan)-len(sorted_xvals))/len(xvals_nonan)*100, 2)))
+    plt.pause(0.5); plt.show()
 
   return sorted_xvals, sorted_yvals, xnew, yvals_interp

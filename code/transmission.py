@@ -2,6 +2,8 @@
 #
 # calculates total transmission of TIFUUN filters from Cardiff's filter measurements
 #
+# dependencies: numpy, matplotlib, scipy, csv, collections
+#
 # meta data
 # 1  = FP 3668 ARC = LPE F1? - 50 K thick IR blocker 90-360 GHz
 # 2  = FP 3667     = LPE F3? - 1K filter ~360 GHz
@@ -20,14 +22,7 @@
 # notes
 # TIFUUN bands are 130–178 GHz and 195–319 GHz, or 90 - 360 GHz according to Akira's SPIE proceedings
 # measurement bands: 1-4 = 17.0-330 GHz, 5 = 24-1049 GHz, 6 = 24-1079 GHz, 7 = 25-1199 GHz, 8 = 25-1129 GHz, 9 = 3900-180000GHz, 10-11 = 600-10500 GHz, 12 = 120-10500 GHz, 13 = 150-10500 GHz
-# phd10 measurements start at 600 GHz, 3900 GHz; phd8 measurement starts at 600 GHz
-# phd4 measurements start at 120 GHz, 150 GHz (lower freq is higher fidelity in band of interest)
-# F1, 3, and some 4 measurements max at 330 GHz
-# F2, AR window, and some F4 measurements max at 1000-1200 GHz
-# three measurements of F4 180-360GHz, '3' measurement is highest fidelity in band of interest (65-330 GHz). Others could be used to extend that range, but we are still limited to 330 GHz by F1 and F3 measurements
-# 8 (F4) to 1130, 7 (F4) to 1200, 6 (AR window) to 1080, 5 (F2) to 1050, 1-4 (F1,3,4) to 330
 # duplicate values removed: 216/7007 = 3% for 1, 216/7007 = 3% for 2, 194/4004 = 4.9% for 3, 156/7007 = 2.2% for 4, 0/1001 for 5, 0/1001 for 6-8, 1/12490 = 0.01% for 12&13, 1/26090 <<1% for 9/10, 1/15093 <<1% for 11
-# 4 has weird interpolation between 60 and 70 GHz
 
 from transmission_routines import *
 
@@ -36,12 +31,12 @@ root_dir                = '/Users/angi/tifuun/transmission/tmiss_measurements/'
 # msmts_to_plot           = [12, 13, 11, 10]   # set to [] for no raw measurement plots; 1=F1, 2=F3, 3=F4 360 GHz, 4=F4 180 GHz, 5=F2, 6=AR window, 7=F4 360 GHz, 8=F4 360 GHz, 9=DSIR5 HF (phd10), 10=DSIR5 LF (phd10), 11=DSIR3&4 (phd8), 12=DSIR1&2 LF (phd4), 13=DSIR1&2 HF (phd4)
 msmts_to_plot           = []   # set to [] for no raw measurement plots; 1=F1, 2=F3, 3=F4 360 GHz, 4=F4 180 GHz, 5=F2, 6=AR window, 7=F4 360 GHz, 8=F4 360 GHz, 9=DSIR5 HF (phd10), 10=DSIR5 LF (phd10), 11=DSIR3&4 (phd8), 12=DSIR1&2 LF (phd4), 13=DSIR1&2 HF (phd4)
 ave_duplicates          = True   # average duplicate frequency measurements when interpolating to new frequencies, otherwise second instance of duplicates will be removed
-check_interp            = False   # plot for checking interpolation of cleaned data to new frequencies
+check_interp            = True   # plot for checking interpolation of cleaned data to new frequencies
 analyze_DSIR345         = False   # analyze DSIR 3 (phd8) and 4&5 (phd10) measurements in addition to DSIR 1&2 (phd4) - phd4 is the only measurement relevant to band of interest
 check_phd4              = False   # plot for checking cleaning of DSIR 1&2 (phd4) cleaning and interpolation
 check_phd8              = False   # plot for checking cleaning of DSIR 3 (phd8) cleaning and interpolation
 check_phd10             = False   # plot for checking cleaning of DSIR 4&5 (phd10) cleaning and interpolation
-plot_total_transmission = False   # plot total transmission to 50 K, 4 K, 1 K, and 300 mK stages
+plot_total_transmission = True   # plot total transmission to 50 K, 4 K, 1 K, and 300 mK stages
 freq_min = 0; freq_max = 330; num_freqs = 1000   # GHz, frequency range to interpolate total transmission
 
 ### plot settings
@@ -227,4 +222,4 @@ if plot_total_transmission:
   plt.ylabel('Total Transmission')
   secax = ax.secondary_xaxis('top', functions=(lambda x: x/spectoGHz, lambda x: x*spectoGHz)); secax.set_xlabel('Wave Number [1/cm]')
 
-plt.show()
+plt.show()   # help interactive figures catch up
