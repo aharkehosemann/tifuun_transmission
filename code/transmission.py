@@ -11,11 +11,11 @@
 # 6  = FP 3429 ARC = UHMWPE ARC window at 300 K?
 # 7  = FP 3083     = LPE F4 360 GHz as well? - 300 mK filter 180-360 GHz
 # 8  = FP 3083     = LPE F4 360 GHz as well? - 300 mK filter 180-360 GHz
-# 9  = DSIR5 (phd10) 50 K
-# 10 = DSIR5 (phd10) 50 K
+# 9  = DSIR5 (phd10) 50 K, high freq measuremenst used for freqs ~> 225 1/cm = 6750 GHz (irrelevant to bands of interest)
+# 10 = DSIR5 (phd10) 50 K, low freq measuremenst used for freqs ~< 225 1/cm = 6750 GHz (only measurement relevant to bands of interest)
 # 11 = DSIR3&4 (phd8) 140&50 K
-# 12 = DSIR1&2 (phd4) 300&140 K
-# 13 = DSIR1&2 (phd4) 300&140 K
+# 12 = DSIR1&2 (phd4) 300&140 K, low freq measurements used for freqs ~< 310 1/cm = 9300 GHz (only measurement relevant to bands of interest)
+# 13 = DSIR1&2 (phd4) 300&140 K, high freq measurements used for freqs ~> 310 1/cm = 9300 GHz (irrelevant to bands of interest)
 #
 # duplicate values removed
 # 1: 216/7007 data points removed = 3% duplicate x values in 20-330 GHz range, most centered around 150 GHz
@@ -25,52 +25,50 @@
 # 5: 0/1001 data points removed = 0% duplicate x values
 # 6: 0/1001 data points removed = 0% duplicate x values
 # 7: 0/1001 data points removed = 0% duplicate x values
-# 8: 0/1001 = 0% duplicate x values
-# 9: ?/1001 = ?% duplicate x values
-# 10: ?/1001 = ?% duplicate x values
-# 11: ?/1001 = ?% duplicate x values
-# 12: ?/1001 = ?% duplicate x values
-# 13: ?/1001 = ?% duplicate x values
+# 8: 0/1001 data points removed= 0% duplicate x values
+# 9: ?/1001 data points removed = ?% duplicate x values
+# 10: ?/1001 data points removed = ?% duplicate x values
+# 11: ?/1001 data points removed = ?% duplicate x values
+# 12: ?/1001 data points removed = ?% duplicate x values
+# 13: ?/1001 data points removed = ?% duplicate x values
 #
 # notes
 # TIFUUN bands are 130–178 GHz and 195–319 GHz, or 90 - 360 GHz according to Akira's SPIE proceedings
 # 1/cm = 30 GHz, 130 GHz ~ 4.3 1/cm, 178 GHz ~ 5.9 1/cm, 195 GHz ~ 6.5 1/cm, 319 GHz ~ 10.6 1/cm
-# phd10 lowest frequency measurement starts at 600 GHz, 3900
-# phd8 lowest frequency measurement starts at 20 1/cm = 600 GHz
-# phd4 lowest frequency measurement starts at 4 1/cm = 120 GHz
+# phd10 measurements start at 600 GHz, 3900 GHz
+# phd8 measurement starts at 600 GHz
+# phd4 measurements start at 120 GHz, 150 GHz (lower freq is higher fidelity in band of interest)
 # F1, 3, and some 4 measurements only go to 330 GHz
 # F2, AR window, and some F4 measurements go to 1000-1200 GHz
 # 8 (F4) to 1130, 7 (F4) to 1200, 6 (AR window) to 1080, 5 (F2) to 1050, 1-4 (F1,3,4) to 330
 # three measurements of F4 180-360GHz, '3' measurement is highest fidelity in band of interest (65-330 GHz). Others could be used to extend that range, but we are still limited to 330 GHz by F1 and F3 measurements
 # sept 2026: something is different about 50K transmission around 120 GHz
 
-import numpy as np
-import matplotlib.pyplot as plt
-import csv
-from scipy import interpolate
-from collections import defaultdict
+from transmission_routines import *
 
 ### user configuration and analysis options
 root_dir                = '/Users/angi/tifuun/transmission/tmiss_measurements/'
-ind_msmts_to_plot       = [2, 5, 1, 6]   # indices of raw filter measurements to plot, set to [] for no raw measurement plots
+ind_msmts_to_plot       = []   # set to [] for no raw measurement plots; 1=F1, 2=F3, 3=F4 360 GHz, 4=F4 180 GHz, 5=F2, 6=AR window, 7=F4 360 GHz, 8=F4 360 GHz, 9=DSIR5 (phd10), 10=DSIR5 (phd10), 11=DSIR3&4 (phd8), 12=DSIR1&2 (phd4), 13=DSIR1&2 (phd4)
 ave_dups                = False   # average duplicate frequency measurements when interpolating to new frequencies, otherwise second instance of duplicates will be removed
-check_dsir_clean        = True   # plot for checking cleaning of DSIR filter measurements
 check_interp            = False   # plot for checking interpolation of cleaned data to new frequencies
+analyze_DSIR345         = True   # analyze 3 (phd8) and 5&5 (phd10) measurements in addition to DSIR 1&2 (phd4) - phd4 is the only measurement relevant to bands of interest
+check_phd4              = True   # plot for checking cleaning of DSIR 1&2 (phd4) cleaning and interpolation
+check_phd8              = True   # plot for checking cleaning of DSIR 3 (phd8) cleaning and interpolation
+check_phd10             = True   # plot for checking cleaning of DSIR 4&5 (phd10) cleaning and interpolation
+plot_total_transmission = False   # plot total transmission to 50 K, 4 K, 1 K, and 300 mK stages
 freq_min = 0; freq_max = 330   # GHz, frequency range to interpolate total transmission
 
 ### plot settings
 font = {'family' : 'serif', 'weight' : 'normal', 'size'   : 18}
-ticks = {'major.size'   : '5', 'labelsize'     : '16', 'minor.visible' : False}
+ticks = {'major.size' : '5', 'labelsize' : '14', 'minor.visible' : False}
+grids = {'linestyle' : '--', 'linewidth' : 0.5}; axes = { 'grid' : True }
 plt.rc('text', usetex=True); plt.rc('font', **font)
 plt.rc('xtick', **ticks);    plt.rc('ytick', **ticks)
+plt.rc('grid', **grids);     plt.rc('axes', **axes)
 plt.rcParams['text.latex.preamble'] = '\\usepackage{amsmath}'
 plt.rcParams['legend.fontsize'] = 16
 plt.rcParams['figure.dpi'] = 100; plt.rcParams['savefig.dpi'] = 300   # higher resolution plots in interactive notebook and when saving pngs
 figsize = (10, 6)   # width, height
-
-### constants
-c = 2.998E8   # speed of light in m/s
-spectoGHz = c/0.01 * 1e-9   # convert spectrocsopic units of 1/cm to GHz
 
 ### filter measurement files
 filter_file1  = root_dir+'3668data.csv'      # FP 3668 ARC, LPE F1? - 50 K thick IR blocker 90-360 GHz
@@ -99,43 +97,10 @@ serial_to_filter = {'FP3429ARC ':    'AR Coated Window (300K)',     'FP3668ARC':
                     'PHD8':          'DSIR3\\&4 (140\\&50K)',       'PHD10':         'DSIR5 (50K)'}                   # combined later
 filter_cols   = [6, 10, 14, 18, 22, 26, 30]   # filter names are in these columns
 
-def read_transmission_csv(files, finds):
-  # read filter transmission data from csv files and return dictionary of transmission data
-  transmission = {}
-  for ff, filter_file in enumerate(files):
-    with open(filter_file, mode ='r', encoding='utf-8-sig')as file:
-      csv_reader = csv.DictReader(file)
-      first_line = True
-      for row in csv_reader:
-        if first_line:
-          ### meta data
-          serial = row['serial']
-          filters = np.array(list(row.keys()))[finds]   # filter names are in these columns
-          transmission[serial] = {}
-          transmission[serial]['description'] = row['description']   # description of measurement
-          # transmission[serial]['filters']     = filters   # some metadata that i don't use
-
-          ### initialize data arrays
-          for ii in np.arange(7):   # data is split into seven columns, not for any particular reason
-            transmission[serial]['freq'+str(ii+1)+' [GHz]'] = np.array([float(row['f'+str(ii+1)])] if row['f'+str(ii+1)] != '' else np.nan)   # freq in GHz
-            transmission[serial][filters[ii]]               = np.array([float(row[filters[ii]])] if row[filters[ii]] != '' else np.nan)   # transmission
-          first_line = False
-        else:   # append arrays
-          for ii in np.arange(7):   # data is split into seven columns, not for any particular reason
-            transmission[serial]['freq'+str(ii+1)+' [GHz]'] = np.append(transmission[serial]['freq'+str(ii+1)+' [GHz]'], float(row['f'+str(ii+1)]) if row['f'+str(ii+1)] != '' else np.nan)   # some files have fewer than 7 frequencies, so add NaN if f7 is empty
-            transmission[serial][filters[ii]]               = np.append(transmission[serial][filters[ii]], float(row[filters[ii]]) if row[filters[ii]] != '' else np.nan)   # some files have fewer than 7 frequencies, so add NaN if transmission is empty
-    freqs = np.concatenate((transmission[serial]['freq1 [GHz]'], transmission[serial]['freq2 [GHz]'], transmission[serial]['freq3 [GHz]'], transmission[serial]['freq4 [GHz]'], transmission[serial]['freq5 [GHz]'], transmission[serial]['freq6 [GHz]'], transmission[serial]['freq7 [GHz]']))
-    tmiss = np.concatenate((transmission[serial][filters[0]],    transmission[serial][filters[1]],    transmission[serial][filters[2]],    transmission[serial][filters[3]],    transmission[serial][filters[4]],    transmission[serial][filters[5]],    transmission[serial][filters[6]]))
-    if ff in [8,9,10,11,12]:   # for DSIR filters, convert frequencies from 1/cm to GHz
-        freqs *= spectoGHz
-    transmission[serial]['freqs_raw'] = freqs   # combined frequency array
-    transmission[serial]['tmiss_raw'] = tmiss   # combined transmission array
-
-  return transmission, serial, filters
-
 tmiss_all, serial_all, filter_all = read_transmission_csv(filter_files, filter_cols)
-
 serials    = list(tmiss_all)
+
+# DSIR filters need extra processing
 freq9_raw  = tmiss_all[serials[8]]['freqs_raw']; freq10_raw  = tmiss_all[serials[9]]['freqs_raw']; freq11_raw  = tmiss_all[serials[10]]['freqs_raw']; freq12_raw  = tmiss_all[serials[11]]['freqs_raw']; freq13_raw  = tmiss_all[serials[12]]['freqs_raw']
 tmiss9_raw = tmiss_all[serials[8]]['tmiss_raw']; tmiss10_raw = tmiss_all[serials[9]]['tmiss_raw']; tmiss11_raw = tmiss_all[serials[10]]['tmiss_raw']; tmiss12_raw = tmiss_all[serials[11]]['tmiss_raw']; tmiss13_raw = tmiss_all[serials[12]]['tmiss_raw']
 
@@ -146,95 +111,11 @@ if len(ind_msmts_to_plot)>0:
     plt.plot(tmiss_all[serials[mm-1]]['freqs_raw'], tmiss_all[serials[mm-1]]['tmiss_raw'], '.', markersize=4, label=serial_to_filter[serials[mm-1]], alpha=0.7)
   plt.xlim(0,1000); plt.xlabel('Frequency [GHz]')   # GHz
   plt.legend(markerscale=2, loc='upper right')
-
-  secax = ax.secondary_xaxis('top', functions=(lambda x: x/spectoGHz, lambda x: x*spectoGHz))
-  secax.set_xlabel('Wave Number [1/cm]')
-  plt.grid(linestyle = '--', which='both', linewidth=0.5)
   plt.ylabel('Filter Transmission')
   plt.ylim(0,1)
+  secax = ax.secondary_xaxis('top', functions=(lambda x: x/spectoGHz, lambda x: x*spectoGHz)); secax.set_xlabel('Wave Number [1/cm]')
 
 ### process data
-# combine low and high freq DSIR 10 um measurements
-phd10_hfinds = np.where(freq9_raw>=225*spectoGHz)[0]   # high freq = large wavenumber
-phd10_lfinds = np.where(freq10_raw<225*spectoGHz)[0]   # low freq = small wavenumber
-phd10c_freq  = np.concatenate((freq9_raw[phd10_hfinds],  freq10_raw[phd10_lfinds]))
-phd10c_tmiss = np.concatenate((tmiss9_raw[phd10_hfinds], tmiss10_raw[phd10_lfinds]))
-
-# combine low and high freq DSIR 4 um measurements
-phd4_hfinds = np.where(freq13_raw>=310*spectoGHz)[0]   # high freq = large wavenumber
-phd4_lfinds = np.where(freq12_raw<310*spectoGHz)[0]    # low freq = small wavenumber
-phd4_freq   = np.concatenate((freq12_raw[phd4_lfinds],  freq13_raw[phd4_hfinds]))
-phd4_tmiss  = np.concatenate((tmiss12_raw[phd4_lfinds], tmiss13_raw[phd4_hfinds]))
-
-# tack on DSIR 4 um measurements below 600 GHz to 8 um and 10 um measurements
-phd4_maskinds = np.where(phd4_tmiss<min(np.concatenate((freq11_raw, phd10c_freq))))[0]
-phd10_freq    = np.concatenate((phd4_freq[phd4_maskinds],  phd10c_freq))
-phd10_tmiss   = np.concatenate((phd4_tmiss[phd4_maskinds], phd10c_tmiss))
-phd8_freq     = np.concatenate((phd4_freq[phd4_maskinds],  freq11_raw))
-phd8_tmiss    = np.concatenate((phd4_tmiss[phd4_maskinds], tmiss11_raw))
-
-# set transmission of DSIR filters to unity below 120 GHz
-unitymask_freqs = np.linspace(0, min(phd4_freq))
-unitymask_tmiss = np.ones_like(unitymask_freqs)
-phd4_freq   = np.concatenate((unitymask_freqs, phd4_freq));  phd4_tmiss  = np.concatenate((unitymask_tmiss, phd4_tmiss))
-phd10_freq  = np.concatenate((unitymask_freqs, phd10_freq)); phd10_tmiss = np.concatenate((unitymask_tmiss, phd10_tmiss))
-phd8_freq   = np.concatenate((unitymask_freqs, phd8_freq));  phd8_tmiss  = np.concatenate((unitymask_tmiss, phd8_tmiss))
-
-def remove_yval_nans(xvals, yvals):   # remove x values and y values where y is nan
-  xvals_no_nan = xvals[~np.isnan(yvals)]
-  yvals_no_nan = yvals[~np.isnan(yvals)]
-  return xvals_no_nan, yvals_no_nan
-
-def find_duplicates(xvals):   # find duplicate x values and return dictionary of x value to list of indices where it occurs
-  tally = defaultdict(list)
-  for i,item in enumerate(xvals):
-    tally[item].append(i)
-  return tally
-
-def remove_duplicates(xvals, yvals):   # remove second instance of duplicate x values and corresponding y values
-  sorted_xvals, sortinds = np.unique(xvals, return_index=True)   # get unique x values and indices to sort y values
-  sorted_yvals = yvals[sortinds]   # y values corresponding to unique x values
-  return sorted_xvals, sorted_yvals
-
-def average_duplicates(xvals, yvals):   # find duplicate x values and replace corresponding y values with their average, return unique sorted x and y arrays
-  ave_yvals = yvals.copy()
-  duplicate_xvals = []
-  tally = find_duplicates(xvals)
-  for key, locs in tally.items():
-    if len(locs)>1:
-      ave_yvals[locs] = np.mean(yvals[locs])
-      duplicate_xvals.append(key)
-  sorted_xvals, sortinds = np.unique(xvals, return_index=True)   # get unique x values and indices to sort y values
-  sorted_yvals = ave_yvals[sortinds]   # y values corresponding to unique x values
-  return sorted_xvals, sorted_yvals
-
-def clean_and_interp(xvals, yvals, xnew, average=False, check_interp=False):   # average y values of duplicate x values, then interpolate to new x values
-  xvals_nonan, yvals_nonan   = remove_yval_nans(xvals, yvals)   # remove x and y where y=nan
-  if average:   # average duplicate values
-    sorted_xvals, sorted_yvals = average_duplicates(xvals_nonan, yvals_nonan)   # average y values of duplicate x values
-  else:   # remove duplicate values
-    sorted_xvals, sorted_yvals = remove_duplicates(xvals_nonan, yvals_nonan)   # remove second instance of duplicate x values and corresponding y values
-
-  tck = interpolate.splrep(sorted_xvals, sorted_yvals, s=0, k=3)
-  yvals_interp = interpolate.BSpline(*tck, extrapolate=False)(xnew)
-  yvals_interp[yvals_interp>1] = 1   # max transission is 1
-
-  if check_interp:   # plot for checking interpolation
-    plt.figure()
-    plt.plot(xvals,        yvals,        '.', markersize=5, alpha=0.5, label='Raw Data')
-    plt.plot(sorted_xvals, sorted_yvals, '.', markersize=5, alpha=0.5, label='Cleaned Data')
-    plt.plot(xnew,         yvals_interp, '.', markersize=3, color='k', label='Interpolated')
-    plt.grid(linestyle = '--', which='both', linewidth=0.5)
-    plt.legend(markerscale=2)
-
-    plt.figure()
-    hist, bins, patches = plt.hist(xvals_nonan, bins=50, alpha=0.5)
-    plt.hist(sorted_xvals, bins=bins, alpha=0.5, label='Cleaned Data')
-    plt.title('Removed {} out of {} duplicate x values ({}\\%)'.format(len(xvals_nonan)-len(sorted_xvals), len(xvals_nonan), round((len(xvals_nonan)-len(sorted_xvals))/len(xvals_nonan)*100, 2)))
-    plt.show()
-
-  return sorted_xvals, sorted_yvals, xnew, yvals_interp
-
 # average or remove duplicate frequency measurements and interpolate to new frequencies
 freqs_interp = np.linspace(freq_min, freq_max, num=1000)   # GHz, frequencies to interpolate total transmission
 
@@ -242,95 +123,126 @@ for ff in np.arange(8):   # for each filter measurement, clean and interpolate t
   freq_sorted,  tmiss_sorted,  freq_interp, tmiss_interp = clean_and_interp(tmiss_all[serials[ff]]['freqs_raw'],  tmiss_all[serials[ff]]['tmiss_raw'],  freqs_interp, average=ave_dups, check_interp=check_interp)   # removed 216/7007 = 3% duplicate x values in 20-330 GHz range, most centered around 150 GHz
   tmiss_all[serials[ff]]['freqs_clean'],  tmiss_all[serials[ff]]['tmiss_clean'],  tmiss_all[serials[ff]]['freqs_interp'], tmiss_all[serials[ff]]['tmiss_interp'] = freq_sorted,  tmiss_sorted, freq_interp, tmiss_interp
 
-# freq1 removed 216/7007 = 3% duplicate x values in 20-330 GHz range, most centered around 150 GHz
-# freq2 removed 216/7007 = 3% duplicate x values in 20-330 GHz range, most centered around 150 GHz
-# freq3 removed 194/4004 = <5% duplicate x values in 20-330 GHz range, most centered around 150 GHz
-# freq4 removed 156/7007 = 2% duplicate x values, some around 30 GHz and some around 150 GHz
-# freq5 removed 0/1001 = 0% duplicate x values
-# freq6 removed 0/1001 = 0% duplicate x values
-# freq7 removed 0/1001 = 0% duplicate x values
-# freq8 removed 0/1001 = 0% duplicate x values
+## DSIR measurements
+# first low and high freq msmts are combined if present, then phd4 msmts are tacked onto phd8 and phd10 to extend their freq range from 600 to 120 GHz, and finally transmission is set to unity for all DSIR filters below 120 GHz
+# for frequency range of interest, all filters are characterized using phd4 measurements, so handling of phd8 and phd10 data is unnecessary
+# combine low and high freq DSIR 4 um measurements
+phd4_hfinds = np.where(freq13_raw>=310*spectoGHz)[0]   # high freq = large wavenumber
+phd4_lfinds = np.where(freq12_raw<310*spectoGHz)[0]    # low freq = small wavenumber
+phd4_freq   = np.concatenate((freq12_raw[phd4_lfinds],  freq13_raw[phd4_hfinds]))
+phd4_tmiss  = np.concatenate((tmiss12_raw[phd4_lfinds], tmiss13_raw[phd4_hfinds]))
 
-## use masked arrays for low frequency measurements of DSIR fitlers
-phd4_freq_sorted,  phd4_tmiss_sorted,  phd4_freq_interp,  phd4_tmiss_interp  = clean_and_interp(phd4_freq,   phd4_tmiss,   freqs_interp, check_interp=check_interp)   # removed 1/12490 = <<1% duplicate x values, potentially in range but hard to tell because measurements go to 150 THz
-phd10_freq_sorted, phd10_tmiss_sorted, phd10_freq_interp, phd10_tmiss_interp = clean_and_interp(phd10_freq,  phd10_tmiss,  freqs_interp, check_interp=check_interp)   # removed 1/26090 = <<1% duplicate x values, probably inherited from phd4
-phd8_freq_sorted,  phd8_tmiss_sorted,  phd8_freq_interp,  phd8_tmiss_interp  = clean_and_interp(phd8_freq,   phd8_tmiss,   freqs_interp, check_interp=check_interp)   # removed 1/15093 = <<1% duplicate x values, probably inherited from phd4
+# set transmission of DSIR filters to unity below 120 GHz
+unitymask_freqs = np.linspace(0, min(phd4_freq))
+unitymask_tmiss = np.ones_like(unitymask_freqs)
+phd4_freq_raw   = np.concatenate((unitymask_freqs, phd4_freq)); phd4_tmiss_raw = np.concatenate((unitymask_tmiss, phd4_tmiss))
 
-if check_dsir_clean:
-  ### DSIR Filters - measurements in spectroscopic units of 1/cm
-  # # PHD 4, 8, and 10 individually in GHz
-  # fig, ax = plt.subplots(figsize=figsize, layout='tight')
-  # plt.plot(freq9_raw,      tmiss9_raw,      'o', markersize=4, alpha=0.3, label=serials[8])   # DSIR5 (phd10) 50 K, one measurement
-  # plt.plot(freq10_raw,     tmiss10_raw,     'o', markersize=4, alpha=0.3, label=serials[9])   # DSIR5 (phd10) 50 K, another measurement
-  # plt.plot(phd10_freq, phd10_tmiss, '.', markersize=2, alpha=0.8, label='PHD10 Combined', color='k')   # DSIR5 (phd10) 50 K, combined measurement
-  # plt.plot(freq12_raw,     tmiss12_raw,     'o', markersize=4, alpha=0.3, label='PHD4 Low \\& Mid Freq')   # DSIR1&2 (phd4) 300&140 K, one measurement, Carole combined low and mid-frequency measurements
-  # plt.plot(freq13_raw,     tmiss13_raw,     'o', markersize=4, alpha=0.3, label=serials[12])    # DSIR1&2 (phd4) 30OTH&14０ K, another measurement, Carole suggests switching to this around 33０ １/cm = ９９００ THz
-  # plt.plot(phd4_freq,  phd4_tmiss,  '.', markersize=2, alpha=0.8, label='PHD4 Combined', color='k')   # DSIR1&2 (phd4) 300&140 K, combined measurement
-  # plt.plot(freq11_raw,     tmiss11_raw,     'o', markersize=4, alpha=0.3, label='PHD8')
-  # plt.legend(markerscale=2, loc='upper right')
-  # plt.xlim(0,1000); plt.xlabel('Frequency [GHz]')   # GHz
-  # secax = ax.secondary_xaxis('top', functions=(lambda x: x/spectoGHz, lambda x: x*spectoGHz))
+# handle duplicate frequency measurments and interpolate
+phd4_freq_cleaned, phd4_tmiss_cleaned, phd4_freq_interp, phd4_tmiss_interp = clean_and_interp(phd4_freq_raw, phd4_tmiss_raw, freqs_interp, check_interp=check_interp)   # removed 1/12490 = <<1% duplicate x values, potentially in range but hard to tell because measurements go to 150 THz
 
-  # all DSIR in GHz
-  fig, ax = plt.subplots(figsize=figsize, layout='tight')
-  plt.plot(phd4_freq,  phd4_tmiss,  '.', markersize=3, alpha=0.7, label='PHD4')    # DSIR1&2 (phd4) 300&140 K, combined measurements
-  plt.plot(freq11_raw,     tmiss11_raw,     '.', markersize=3, alpha=0.7, label='PHD8')    # DSIR3&4 (phd8) 140&50 K
-  plt.plot(phd10_freq, phd10_tmiss, '.', markersize=3, alpha=0.7, label='PHD10')   # DSIR5 (phd10) 50 K, combined measurements
-  plt.xlim(0,1000); plt.xlabel('Frequency [GHz]')   # GHz
-  plt.legend(markerscale=5, loc='lower left')
-  secax = ax.secondary_xaxis('top', functions=(lambda x: x/spectoGHz, lambda x: x*spectoGHz))
+if analyze_DSIR345:
+  # combine low and high freq DSIR 10 um measurements
+  phd10_hfinds = np.where(freq9_raw>=225*spectoGHz)[0]   # high freq = large wavenumber
+  phd10_lfinds = np.where(freq10_raw<225*spectoGHz)[0]   # low freq = small wavenumber
+  phd10c_freq  = np.concatenate((freq9_raw[phd10_hfinds],  freq10_raw[phd10_lfinds]))
+  phd10c_tmiss = np.concatenate((tmiss9_raw[phd10_hfinds], tmiss10_raw[phd10_lfinds]))
 
-  plt.ylabel('Filter Transmission')
-  secax.set_xlabel('Wave Number [1/cm]')
-  plt.grid(linestyle = '--', which='both', linewidth=0.5)
-  plt.ylim(0,1)
-  plt.tight_layout()
+  # tack on DSIR 4 um measurements below 600 GHz to 8 um and 10 um measurements
+  phd4_maskinds = np.where(phd4_tmiss<min(np.concatenate((freq11_raw, phd10c_freq))))[0]
+  phd10_freq    = np.concatenate((phd4_freq[phd4_maskinds],  phd10c_freq))
+  phd10_tmiss   = np.concatenate((phd4_tmiss[phd4_maskinds], phd10c_tmiss))
+  phd8_freq     = np.concatenate((phd4_freq[phd4_maskinds],  freq11_raw))
+  phd8_tmiss    = np.concatenate((phd4_tmiss[phd4_maskinds], tmiss11_raw))
+
+  # set transmission of DSIR filters to unity below 120 GHz
+  phd10_freq_raw  = np.concatenate((unitymask_freqs, phd10_freq)); phd10_tmiss_raw = np.concatenate((unitymask_tmiss, phd10_tmiss))
+  phd8_freq_raw   = np.concatenate((unitymask_freqs, phd8_freq));  phd8_tmiss_raw  = np.concatenate((unitymask_tmiss, phd8_tmiss))
+
+  # handle duplicate frequency measurments and interpolate
+  phd10_freq_cleaned, phd10_tmiss_cleaned, phd10_freq_interp, phd10_tmiss_interp = clean_and_interp(phd10_freq_raw,  phd10_tmiss_raw, freqs_interp, check_interp=check_interp)   # removed 1/26090 = <<1% duplicate x values, probably inherited from phd4
+  phd8_freq_cleaned,  phd8_tmiss_cleaned,  phd8_freq_interp,  phd8_tmiss_interp  = clean_and_interp(phd8_freq_raw,   phd8_tmiss_raw,  freqs_interp, check_interp=check_interp)   # removed 1/15093 = <<1% duplicate x values, probably inherited from phd4
+else: # treat phd8 and phd10 filters as phd4
+  phd10_freq_raw, phd10_tmiss_raw, phd10_freq_cleaned, phd10_tmiss_cleaned, phd10_freq_interp, phd10_tmiss_interp = phd4_freq_raw, phd4_tmiss_raw, phd4_freq_cleaned, phd4_tmiss_cleaned, phd4_freq_interp, phd4_tmiss_interp
+  phd8_freq_raw, phd8_tmiss_raw, phd8_freq_cleaned, phd8_tmiss_cleaned, phd8_freq_interp, phd8_tmiss_interp = phd4_freq_raw, phd4_tmiss_raw, phd4_freq_cleaned, phd4_tmiss_cleaned, phd4_freq_interp, phd4_tmiss_interp
+
+if check_phd4:   # check cleaning and interpolation of DSIR 1&2 (phd4)
+  fig, ax = plt.subplots(figsize=(10,7), layout='tight')
+  plt.plot(freq12_raw,        tmiss12_raw,        'o', markersize=5, alpha=1, color='C1', label='raw, LF')    # DSIR1&2 (phd4) 300&140 K, one measurement
+  plt.plot(freq13_raw,        tmiss13_raw,        'o', markersize=5, alpha=1, color='C3', label='raw, HF')    # DSIR1&2 (phd4) 300&140 K, another measurement
+  # plt.plot(phd4_freq_raw,     phd4_tmiss_raw,     'o', markersize=3, alpha=0.6, color='C2', label='pre-cleaned')    # DSIR1&2 (phd4) 300&140 K, pre-cleaned
+  plt.plot(phd4_freq_cleaned, phd4_tmiss_cleaned, 'o', markersize=3, alpha=0.6, color='C0', label='cleaned')    # DSIR1&2 (phd4) 300&140 K, cleaned
+  plt.plot(phd4_freq_interp,  phd4_tmiss_interp,  linewidth=2, color='k', label='interpolated')    # DSIR1&2 (phd4) 300&140 K, interpolated
+  plt.legend(markerscale=2, loc='lower left')
+  # plt.vlines(310*spectoGHz, 0, 2, color='red', linestyle='--', alpha=0.5)   # vertical line at the boundary between low and high frequency measurements
+  plt.xlim(0,700); plt.xlabel('Frequency [GHz]')   # GHz
+  plt.ylim(0.88, 1.01); plt.ylabel('Filter Transmission')
+  plt.title('DSIR 1\\&2 (PHD4)', pad=10)
+  ax.fill_between(phd4_freq_cleaned, 0, 2, where=phd4_freq_cleaned>freq_max, color='gray', alpha=0.2, linewidth=0)   # shade region above max frequency of interest
+  secax = ax.secondary_xaxis('top', functions=(lambda x: x/spectoGHz, lambda x: x*spectoGHz)); secax.set_xlabel('Wave Number [1/cm]', labelpad=10)
+
+if check_phd8:   # check cleaning and interpolation of DSIR 3 (phd8)
+  fig, ax = plt.subplots(figsize=(10,7), layout='tight')
+  plt.plot(freq11_raw,        tmiss11_raw,        'o', markersize=5, alpha=1, color='C1', label='raw')    # DSIR3&4 (phd8) 140&50 K, single measurement
+  # plt.plot(phd8_freq_raw,     phd8_tmiss_raw,     'o', markersize=3, alpha=0.6, color='C2', label='pre-cleaned')    # DSIR3&4 (phd8) 140&50 K, pre-cleaned
+  plt.plot(phd8_freq_cleaned, phd8_tmiss_cleaned, 'o', markersize=3, alpha=0.6, color='C0', label='cleaned')    # DSIR3&4 (phd8) 140&50 K, cleaned
+  plt.plot(phd8_freq_interp,  phd8_tmiss_interp,  linewidth=2, color='k', label='interpolated')    # DSIR3&4 (phd8) 140&50 K, interpolated
+  plt.legend(markerscale=2, loc='lower left')
+  plt.xlim(0,700); plt.xlabel('Frequency [GHz]')   # GHz
+  plt.ylim(0.88, 1.01); plt.ylabel('Filter Transmission')
+  plt.title('DSIR 3 (PHD8)', pad=10)
+  ax.fill_between(phd8_freq_cleaned, 0, 2, where=phd8_freq_cleaned>freq_max, color='gray', alpha=0.2, linewidth=0)   # shade region above max frequency of interest
+  secax = ax.secondary_xaxis('top', functions=(lambda x: x/spectoGHz, lambda x: x*spectoGHz)); secax.set_xlabel('Wave Number [1/cm]', labelpad=10)
+
+if check_phd10:   # check cleaning and interpolation of DSIR 4&5 (phd10)
+  fig, ax = plt.subplots(figsize=(10,7), layout='tight')
+  plt.plot(freq10_raw,         tmiss10_raw,         'o', markersize=5, alpha=1, color='C1', label='raw, LF')    # DSIR5 (phd10) 50 K, one measurement
+  plt.plot(freq9_raw,          tmiss9_raw,          'o', markersize=5, alpha=1, color='C3', label='raw, HF')    # DSIR5 (phd10) 50 K, one measurement
+  # plt.plot(phd10_freq_raw,     phd10_tmiss_raw,     'o', markersize=3, alpha=0.6, color='C2', label='pre-cleaned')    # DSIR5 (phd10) 50 K, pre-cleaned
+  plt.plot(phd10_freq_cleaned, phd10_tmiss_cleaned, 'o', markersize=3, alpha=0.6, color='C0', label='cleaned')    # DSIR5 (phd10) 50 K, cleaned
+  plt.plot(phd10_freq_interp,  phd10_tmiss_interp,  linewidth=2, color='k', label='interpolated')    # DSIR5 (phd10) 50 K, interpolated
+  # plt.vlines(225*spectoGHz, 0, 2, color='red', linestyle='--', alpha=0.5)   # vertical line at the boundary between low and high frequency measurements
+  plt.legend(markerscale=2, loc='lower left')
+  plt.xlim(0,700); plt.xlabel('Frequency [GHz]')   # GHz
+  plt.ylim(0.88, 1.01); plt.ylabel('Filter Transmission')
+  plt.title('DSIR 4\\&5 (PHD4)', pad=10)
+  ax.fill_between(phd10_freq_cleaned, 0, 2, where=phd10_freq_cleaned>freq_max, color='gray', alpha=0.2, linewidth=0)   # shade region above max frequency of interest
+  secax = ax.secondary_xaxis('top', functions=(lambda x: x/spectoGHz, lambda x: x*spectoGHz)); secax.set_xlabel('Wave Number [1/cm]', labelpad=10)
 
 ### total transmission to 50 K, 4 K, 1 K, and 300 mK
-AR_tmiss        = tmiss_all[serials[5]]['tmiss_interp']
-F1_tmiss        = tmiss_all[serials[0]]['tmiss_interp']
-F2_tmiss        = tmiss_all[serials[4]]['tmiss_interp']
-F3_tmiss        = tmiss_all[serials[1]]['tmiss_interp']
-F4_180GHz_tmiss = tmiss_all[serials[3]]['tmiss_interp']
-F4_360GHz_tmiss = tmiss_all[serials[2]]['tmiss_interp'] #  ('2' has smallest freq range but highest fidelity)
-DSIR1_tmiss     = phd10_tmiss_interp
-DSIR2_tmiss     = phd8_tmiss_interp
-DSIR4_tmiss     = phd4_tmiss_interp
+if plot_total_transmission:
+  AR_tmiss        = tmiss_all[serials[5]]['tmiss_interp']
+  F1_tmiss        = tmiss_all[serials[0]]['tmiss_interp']
+  F2_tmiss        = tmiss_all[serials[4]]['tmiss_interp']
+  F3_tmiss        = tmiss_all[serials[1]]['tmiss_interp']
+  F4_180GHz_tmiss = tmiss_all[serials[3]]['tmiss_interp']
+  F4_360GHz_tmiss = tmiss_all[serials[2]]['tmiss_interp'] #  ('2' has smallest freq range but highest fidelity)
+  DSIR1_tmiss     = phd10_tmiss_interp
+  DSIR2_tmiss     = phd8_tmiss_interp
+  DSIR4_tmiss     = phd4_tmiss_interp
 
-# # to 50 K: AR Window ('6'), DSIR Filters 1-5 (1x10um '10' ('9' is high freq), 2x8um '11', 2x4um '12' ('13' is high freq)), F1 ('1')
-# tmiss_to50K = tmiss6_interp*phd10_tmiss_interp*phd8_tmiss_interp*phd8_tmiss_interp*phd4_tmiss_interp*phd4_tmiss_interp*tmiss1_interp
-# # to 4 K: add F2 ('5')
-# tmiss_to4K = tmiss_to50K*tmiss5_interp
-# # to 1 K: add F3 ('2')
-# tmiss_to1K = tmiss_to4K*tmiss2_interp
-# # to 300 mK: add F4, one for 90-180 GHz ('4') and another for 180-360 GHz ('3' has smallest freq range but highest fidelity)
-# tmiss_to300mK_180GHz = tmiss_to1K*tmiss4_interp
-# tmiss_to300mK_360GHz = tmiss_to1K*tmiss3_interp
+  # to 50 K: AR Window ('5'), DSIR Filters 1-5 (1x10um '9' ('8' is high freq), 2x8um '10', 2x4um '11' ('12' is high freq)), F1 ('0')
+  tmiss_to50K = AR_tmiss*DSIR1_tmiss*DSIR2_tmiss*DSIR2_tmiss*DSIR4_tmiss*DSIR4_tmiss*F1_tmiss
+  # to 4 K: add F2
+  tmiss_to4K = tmiss_to50K*F2_tmiss
+  # to 1 K: add F3 ('1')
+  tmiss_to1K = tmiss_to4K*F3_tmiss
+  # to 300 mK: add F4, one for 90-180 GHz ('3') and another for 180-360 GHz
+  tmiss_to300mK_180GHz = tmiss_to1K*F4_180GHz_tmiss
+  tmiss_to300mK_360GHz = tmiss_to1K*F4_360GHz_tmiss
 
-# to 50 K: AR Window ('5'), DSIR Filters 1-5 (1x10um '9' ('8' is high freq), 2x8um '10', 2x4um '11' ('12' is high freq)), F1 ('0')
-tmiss_to50K = AR_tmiss*DSIR1_tmiss*DSIR2_tmiss*DSIR2_tmiss*DSIR4_tmiss*DSIR4_tmiss*F1_tmiss
-# to 4 K: add F2
-tmiss_to4K = tmiss_to50K*F2_tmiss
-# to 1 K: add F3 ('1')
-tmiss_to1K = tmiss_to4K*F3_tmiss
-# to 300 mK: add F4, one for 90-180 GHz ('3') and another for 180-360 GHz
-tmiss_to300mK_180GHz = tmiss_to1K*F4_180GHz_tmiss
-tmiss_to300mK_360GHz = tmiss_to1K*F4_360GHz_tmiss
+  # plt.figure(figsize=figsize)
+  fig, ax = plt.subplots(figsize=figsize, layout='tight')
+  plt.plot(freqs_interp, tmiss_to50K,          label='50 K',                 alpha=1, linewidth=2.5)
+  plt.plot(freqs_interp, tmiss_to4K,           label='4 K',                  alpha=1, linewidth=2.5)
+  plt.plot(freqs_interp, tmiss_to1K,           label='1 K',                  alpha=1, linewidth=2.5)
+  plt.plot(freqs_interp, tmiss_to300mK_180GHz, label='300 mK (90-180 GHz)',  alpha=1, linewidth=2.5)
+  plt.plot(freqs_interp, tmiss_to300mK_360GHz, label='300 mK (180-360 GHz)', alpha=1, linewidth=2.5)
+  plt.xlabel('Frequency [GHz]')
+  plt.legend(markerscale=5)
+  plt.ylim(0,1); plt.xlim(0, 350)   # GHz
+  plt.ylabel('Total Transmission')
 
-# plt.figure(figsize=figsize)
-fig, ax = plt.subplots(figsize=figsize, layout='tight')
-plt.plot(freqs_interp, tmiss_to50K,          label='50 K',                 alpha=1, linewidth=2.5)
-plt.plot(freqs_interp, tmiss_to4K,           label='4 K',                  alpha=1, linewidth=2.5)
-plt.plot(freqs_interp, tmiss_to1K,           label='1 K',                  alpha=1, linewidth=2.5)
-plt.plot(freqs_interp, tmiss_to300mK_180GHz, label='300 mK (90-180 GHz)',  alpha=1, linewidth=2.5)
-plt.plot(freqs_interp, tmiss_to300mK_360GHz, label='300 mK (180-360 GHz)', alpha=1, linewidth=2.5)
-plt.xlabel('Frequency [GHz]')
-plt.legend(markerscale=5)
+  secax = ax.secondary_xaxis('top', functions=(lambda x: x/spectoGHz, lambda x: x*spectoGHz)); secax.set_xlabel('Wave Number [1/cm]')
+  plt.tight_layout()
 
-secax = ax.secondary_xaxis('top', functions=(lambda x: x/spectoGHz, lambda x: x*spectoGHz))
-secax.set_xlabel('Wave Number [1/cm]')
-plt.ylim(0,1); plt.xlim(0, 350)   # GHz
-plt.ylabel('Total Transmission')
-plt.grid(linestyle = '--', which='both', linewidth=0.5)
-plt.tight_layout()
 plt.show()
