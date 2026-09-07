@@ -31,12 +31,12 @@ root_dir                = '/Users/angi/tifuun/transmission/'
 # msmts_to_plot           = [12, 13, 11, 10]   # set to [] for no raw measurement plots; 1=F1, 2=F3, 3=F4 360 GHz, 4=F4 180 GHz, 5=F2, 6=AR window, 7=F4 360 GHz, 8=F4 360 GHz, 9=DSIR5 HF (phd10), 10=DSIR5 LF (phd10), 11=DSIR3&4 (phd8), 12=DSIR1&2 LF (phd4), 13=DSIR1&2 HF (phd4)
 msmts_to_plot           = []   # set to [] for no raw measurement plots; 1=F1, 2=F3, 3=F4 360 GHz, 4=F4 180 GHz, 5=F2, 6=AR window, 7=F4 360 GHz, 8=F4 360 GHz, 9=DSIR5 HF (phd10), 10=DSIR5 LF (phd10), 11=DSIR3&4 (phd8), 12=DSIR1&2 LF (phd4), 13=DSIR1&2 HF (phd4)
 ave_duplicates          = True   # average duplicate frequency measurements when interpolating to new frequencies, otherwise second instance of duplicates will be removed
-check_interp            = True   # plot for checking interpolation of cleaned data to new frequencies
-analyze_DSIR345         = False   # analyze DSIR 3 (phd8) and 4&5 (phd10) measurements in addition to DSIR 1&2 (phd4) - phd4 is the only measurement relevant to band of interest
-check_phd4              = False   # plot for checking cleaning of DSIR 1&2 (phd4) cleaning and interpolation
-check_phd8              = False   # plot for checking cleaning of DSIR 3 (phd8) cleaning and interpolation
-check_phd10             = False   # plot for checking cleaning of DSIR 4&5 (phd10) cleaning and interpolation
-plot_total_transmission = True   # plot total transmission to 50 K, 4 K, 1 K, and 300 mK stages
+check_interp            = False   # plot for checking interpolation of cleaned data to new frequencies
+analyze_DSIR345         = False   # analyze DSIR 3&4 (phd8) and 5 (phd10) measurements in addition to DSIR 1&2 (phd4) - phd4 is the only measurement relevant to band of interest
+check_phd4              = True   # plot for checking cleaning of DSIR 1&2 (phd4) cleaning and interpolation
+check_phd8              = True   # plot for checking cleaning of DSIR 3&4 (phd8) cleaning and interpolation
+check_phd10             = True   # plot for checking cleaning of DSIR 5 (phd10) cleaning and interpolation
+plot_total_transmission = False   # plot total transmission to 50 K, 4 K, 1 K, and 300 mK stages
 freq_min = 0; freq_max = 330; num_freqs = 1000   # GHz, frequency range to interpolate total transmission
 
 ### plot settings
@@ -161,7 +161,7 @@ if check_phd4:   # check cleaning and interpolation of DSIR 1&2 (phd4)
   ax.fill_between(phd4_freq_cleaned, 0, 2, where=phd4_freq_cleaned>freq_max, color='gray', alpha=0.2, linewidth=0)   # shade region above max frequency of interest
   secax = ax.secondary_xaxis('top', functions=(lambda x: x/spectoGHz, lambda x: x*spectoGHz)); secax.set_xlabel('Wave Number [1/cm]', labelpad=10)
 
-if check_phd8:   # check cleaning and interpolation of DSIR 3 (phd8)
+if check_phd8:   # check cleaning and interpolation of DSIR 3&4 (phd8)
   fig, ax = plt.subplots(figsize=(10,7), layout='tight')
   plt.plot(freq11_raw,        tmiss11_raw,        'o', markersize=5, alpha=1, color='C1', label='raw')    # DSIR3&4 (phd8) 140&50 K, single measurement
   # plt.plot(phd8_freq_raw,     phd8_tmiss_raw,     'o', markersize=3, alpha=0.6, color='C2', label='pre-cleaned')    # DSIR3&4 (phd8) 140&50 K, pre-cleaned
@@ -170,11 +170,11 @@ if check_phd8:   # check cleaning and interpolation of DSIR 3 (phd8)
   plt.legend(markerscale=2, loc='lower left')
   plt.xlim(0,700); plt.xlabel('Frequency [GHz]')   # GHz
   plt.ylim(0.88, 1.01); plt.ylabel('Filter Transmission')
-  plt.title('DSIR 3 (PHD8)', pad=10)
+  plt.title('DSIR 3\\&4 (PHD8)', pad=10)
   ax.fill_between(phd8_freq_cleaned, 0, 2, where=phd8_freq_cleaned>freq_max, color='gray', alpha=0.2, linewidth=0)   # shade region above max frequency of interest
   secax = ax.secondary_xaxis('top', functions=(lambda x: x/spectoGHz, lambda x: x*spectoGHz)); secax.set_xlabel('Wave Number [1/cm]', labelpad=10)
 
-if check_phd10:   # check cleaning and interpolation of DSIR 4&5 (phd10)
+if check_phd10:   # check cleaning and interpolation of DSIR 5 (phd10)
   fig, ax = plt.subplots(figsize=(10,7), layout='tight')
   plt.plot(freq10_raw,         tmiss10_raw,         'o', markersize=5, alpha=1, color='C1', label='raw, LF')    # DSIR5 (phd10) 50 K, one measurement
   plt.plot(freq9_raw,          tmiss9_raw,          'o', markersize=5, alpha=1, color='C3', label='raw, HF')    # DSIR5 (phd10) 50 K, one measurement
@@ -184,24 +184,24 @@ if check_phd10:   # check cleaning and interpolation of DSIR 4&5 (phd10)
   plt.legend(markerscale=2, loc='lower left')
   plt.xlim(0,700); plt.xlabel('Frequency [GHz]')   # GHz
   plt.ylim(0.88, 1.01); plt.ylabel('Filter Transmission')
-  plt.title('DSIR 4\\&5 (PHD10)', pad=10)
+  plt.title('DSIR 5 (PHD10)', pad=10)
   ax.fill_between(phd10_freq_cleaned, 0, 2, where=phd10_freq_cleaned>freq_max, color='gray', alpha=0.2, linewidth=0)   # shade region above max frequency of interest
   secax = ax.secondary_xaxis('top', functions=(lambda x: x/spectoGHz, lambda x: x*spectoGHz)); secax.set_xlabel('Wave Number [1/cm]', labelpad=10)
 
 ### total transmission to 50 K, 4 K, 1 K, and 300 mK
 if plot_total_transmission:
-  AR_tmiss        = tmiss_all[serials[5]]['tmiss_interp']
-  F1_tmiss        = tmiss_all[serials[0]]['tmiss_interp']
-  F2_tmiss        = tmiss_all[serials[4]]['tmiss_interp']
-  F3_tmiss        = tmiss_all[serials[1]]['tmiss_interp']
-  F4_180GHz_tmiss = tmiss_all[serials[3]]['tmiss_interp']
-  F4_360GHz_tmiss = tmiss_all[serials[2]]['tmiss_interp'] #  ('2' has smallest freq range but highest fidelity)
-  DSIR1_tmiss     = phd10_tmiss_interp
-  DSIR2_tmiss     = phd8_tmiss_interp
-  DSIR4_tmiss     = phd4_tmiss_interp
+  AR_tmiss        = tmiss_all[serials[5]]['tmiss_interp']   # only measurement
+  F1_tmiss        = tmiss_all[serials[0]]['tmiss_interp']   # only measurement
+  F2_tmiss        = tmiss_all[serials[4]]['tmiss_interp']   # only measurement
+  F3_tmiss        = tmiss_all[serials[1]]['tmiss_interp']   # only measurement
+  F4_180GHz_tmiss = tmiss_all[serials[3]]['tmiss_interp']   # only measurement
+  F4_360GHz_tmiss = tmiss_all[serials[2]]['tmiss_interp']   # 3 msmts, file '3' has smallest freq range but highest fidelity
+  DSIR12_tmiss    = phd4_tmiss_interp
+  DSIR34_tmiss    = phd8_tmiss_interp
+  DSIR5_tmiss     = phd10_tmiss_interp
 
   # to 50 K: AR Window ('5'), DSIR Filters 1-5 (1x10um '9' ('8' is high freq), 2x8um '10', 2x4um '11' ('12' is high freq)), F1 ('0')
-  tmiss_to50K = AR_tmiss*DSIR1_tmiss*DSIR2_tmiss*DSIR2_tmiss*DSIR4_tmiss*DSIR4_tmiss*F1_tmiss
+  tmiss_to50K = AR_tmiss*DSIR12_tmiss*DSIR34_tmiss*DSIR34_tmiss*DSIR5_tmiss*DSIR5_tmiss*F1_tmiss
   # to 4 K: add F2
   tmiss_to4K = tmiss_to50K*F2_tmiss
   # to 1 K: add F3 ('1')
@@ -222,4 +222,4 @@ if plot_total_transmission:
   plt.ylabel('Total Transmission')
   secax = ax.secondary_xaxis('top', functions=(lambda x: x/spectoGHz, lambda x: x*spectoGHz)); secax.set_xlabel('Wave Number [1/cm]')
 
-plt.show()   # help interactive figures catch up
+plt.show()
