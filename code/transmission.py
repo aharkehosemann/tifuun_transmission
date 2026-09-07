@@ -13,11 +13,11 @@
 # 6  = FP 3429 ARC = UHMWPE ARC window at 300 K?
 # 7  = FP 3083     = LPE F4 360 GHz as well? - 300 mK filter 180-360 GHz
 # 8  = FP 3083     = LPE F4 360 GHz as well? - 300 mK filter 180-360 GHz
-# 9  = DSIR5 (phd10) 50 K, high freq measuremenst used for freqs ~> 225 1/cm = 6750 GHz (irrelevant to band of interest)
-# 10 = DSIR5 (phd10) 50 K, low freq measuremenst used for freqs ~< 225 1/cm = 6750 GHz (only measurement relevant to band of interest)
+# 9  = DSIR5 (phd10) 50 K, high freq measurement used for freqs ~> 225 1/cm = 6750 GHz (irrelevant to band of interest)
+# 10 = DSIR5 (phd10) 50 K, low freq measurement used for freqs ~< 225 1/cm = 6750 GHz (only measurement relevant to band of interest)
 # 11 = DSIR3&4 (phd8) 140&50 K
-# 12 = DSIR1&2 (phd4) 300&140 K, low freq measurements used for freqs ~< 310 1/cm = 9300 GHz (only measurement relevant to band of interest)
-# 13 = DSIR1&2 (phd4) 300&140 K, high freq measurements used for freqs ~> 310 1/cm = 9300 GHz (irrelevant to band of interest)
+# 12 = DSIR1&2 (phd4) 300&140 K, low freq measurement used for freqs ~< 310 1/cm = 9300 GHz (still irrelevant to band of interest)
+# 13 = DSIR1&2 (phd4) 300&140 K, high freq measurement used for freqs ~> 310 1/cm = 9300 GHz (irrelevant to band of interest)
 #
 # notes
 # TIFUUN bands are 130–178 GHz and 195–319 GHz, or 90 - 360 GHz according to Akira's SPIE proceedings
