@@ -27,7 +27,7 @@
 from transmission_routines import *
 
 ### user configuration and analysis options
-root_dir                = '/Users/angi/tifuun/transmission/tmiss_measurements/'
+root_dir                = '/Users/angi/tifuun/transmission/'
 # msmts_to_plot           = [12, 13, 11, 10]   # set to [] for no raw measurement plots; 1=F1, 2=F3, 3=F4 360 GHz, 4=F4 180 GHz, 5=F2, 6=AR window, 7=F4 360 GHz, 8=F4 360 GHz, 9=DSIR5 HF (phd10), 10=DSIR5 LF (phd10), 11=DSIR3&4 (phd8), 12=DSIR1&2 LF (phd4), 13=DSIR1&2 HF (phd4)
 msmts_to_plot           = []   # set to [] for no raw measurement plots; 1=F1, 2=F3, 3=F4 360 GHz, 4=F4 180 GHz, 5=F2, 6=AR window, 7=F4 360 GHz, 8=F4 360 GHz, 9=DSIR5 HF (phd10), 10=DSIR5 LF (phd10), 11=DSIR3&4 (phd8), 12=DSIR1&2 LF (phd4), 13=DSIR1&2 HF (phd4)
 ave_duplicates          = True   # average duplicate frequency measurements when interpolating to new frequencies, otherwise second instance of duplicates will be removed
@@ -52,19 +52,19 @@ plt.rcParams['figure.dpi'] = 100; plt.rcParams['savefig.dpi'] = 300   # higher r
 figsize = (10, 6)   # width, height
 
 ### filter measurement files
-filter_file1  = root_dir+'3668data.csv'      # FP 3668 ARC, LPE F1? - 50 K thick IR blocker 90-360 GHz
-filter_file2  = root_dir+'3667data.csv'      # FP 3667,     LPE F3? - 1K filter ~360 GHz
-filter_file3  = root_dir+'3662data.csv'      # FP 3662,     LPE F4 360 GHz? - 300 mK filter 180-360 GHz
-filter_file4  = root_dir+'3572data.csv'      # FP 3572,     LPE F4 180 GHz? - 300 mK filter 990-180 GHz
-filter_file5  = root_dir+'S3431R5.csv'       # FP 3450,     LPE F2? - 4K LPE filter 500 GHz
-filter_file6  = root_dir+'S3424R7.csv'       # FP 3429 ARC, UHMWPE ARC window at 300 K?
-filter_file7  = root_dir+'S3400R11.csv'      # FP 3083, also LPE F4 360 GHz? - 300 mK filter 180-360 GHz
-filter_file8  = root_dir+'S3400R13.csv'      # FP 3083, also LPE F4 360 GHz? - 300 mK filter 180-360 GHz
-filter_file9  = root_dir+'C0257_3.csv'       # DSIR5 (phd10) 50 K, one measurement, use for 225+ 1/cm
-filter_file10 = root_dir+'T1889R7.csv'       # DSIR5 (phd10) 50 K, another measurement, use for 0-225 1/cm
-filter_file11 = root_dir+'T1889R5.csv'       # DSIR3&4 (phd8) 140&50 K
-filter_file12 = root_dir+'phd4_combined.csv' # DSIR1&2 (phd4) 300&140 K, one measurement, Carole combined low and mid-frequency measurements
-filter_file13 = root_dir+'M24779.csv'        # DSIR1&2 (phd4) 300&140 K, another measurement, Carole suggests switching to this around 330 1/cm
+filter_file1  = root_dir+'tmiss_measurements/3668data.csv'      # FP 3668 ARC, LPE F1? - 50 K thick IR blocker 90-360 GHz
+filter_file2  = root_dir+'tmiss_measurements/3667data.csv'      # FP 3667,     LPE F3? - 1K filter ~360 GHz
+filter_file3  = root_dir+'tmiss_measurements/3662data.csv'      # FP 3662,     LPE F4 360 GHz? - 300 mK filter 180-360 GHz
+filter_file4  = root_dir+'tmiss_measurements/3572data.csv'      # FP 3572,     LPE F4 180 GHz? - 300 mK filter 990-180 GHz
+filter_file5  = root_dir+'tmiss_measurements/S3431R5.csv'       # FP 3450,     LPE F2? - 4K LPE filter 500 GHz
+filter_file6  = root_dir+'tmiss_measurements/S3424R7.csv'       # FP 3429 ARC, UHMWPE ARC window at 300 K?
+filter_file7  = root_dir+'tmiss_measurements/S3400R11.csv'      # FP 3083, also LPE F4 360 GHz? - 300 mK filter 180-360 GHz
+filter_file8  = root_dir+'tmiss_measurements/S3400R13.csv'      # FP 3083, also LPE F4 360 GHz? - 300 mK filter 180-360 GHz
+filter_file9  = root_dir+'tmiss_measurements/C0257_3.csv'       # DSIR5 (phd10) 50 K, one measurement, use for 225+ 1/cm
+filter_file10 = root_dir+'tmiss_measurements/T1889R7.csv'       # DSIR5 (phd10) 50 K, another measurement, use for 0-225 1/cm
+filter_file11 = root_dir+'tmiss_measurements/T1889R5.csv'       # DSIR3&4 (phd8) 140&50 K
+filter_file12 = root_dir+'tmiss_measurements/phd4_combined.csv' # DSIR1&2 (phd4) 300&140 K, one measurement, Carole combined low and mid-frequency measurements
+filter_file13 = root_dir+'tmiss_measurements/M24779.csv'        # DSIR1&2 (phd4) 300&140 K, another measurement, Carole suggests switching to this around 330 1/cm
 filter_files  = [filter_file1, filter_file2, filter_file3, filter_file4, filter_file5, filter_file6, filter_file7, filter_file8, filter_file9, filter_file10, filter_file11, filter_file12, filter_file13]
 
 ### read data files
